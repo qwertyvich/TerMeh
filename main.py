@@ -3,20 +3,19 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import sympy as sp
 
-
 t = sp.Symbol('t')
 r = 1 + 1.5 * sp.sin(12 * t)
 phi = 1.2 * t + 0.2 * sp.cos(12 * t)
 x = r * sp.cos(phi)
 y = r * sp.sin(phi)
 
-Vx = sp.diff(x, t)# производные 1 порядка
+Vx = sp.diff(x, t)
 Vy = sp.diff(y, t)
-Ax = sp.diff(Vx, t)# производные 2 порядка
+Ax = sp.diff(Vx, t)
 Ay = sp.diff(Vy, t)
-V = sp.sqrt(Vx**2 + Vy**2)                  #модуль скорости
-kappa = sp.Abs(Vx * Ay - Vy * Ax) / V**3    #ривизна траектории    
-rho = 1 / kappa                             # радиус
+V = sp.sqrt(Vx**2 + Vy**2)                  
+kappa = sp.Abs(Vx * Ay - Vy * Ax) / V**3    
+rho = 1 / kappa                             
 
 F_x = sp.lambdify(t, x, modules='numpy')
 F_y = sp.lambdify(t, y, modules='numpy')
@@ -26,7 +25,7 @@ F_Ax = sp.lambdify(t, Ax, modules='numpy')
 F_Ay = sp.lambdify(t, Ay, modules='numpy')
 F_rho = sp.lambdify(t, rho, modules='numpy')
 
-t_vals = np.linspace(0, 2 * np.pi, 4000)    #диапазон времени linspace (start, end, num = num_points) 
+t_vals = np.linspace(0, 2 * np.pi, 1000)    
 
 x_vals = F_x(t_vals)
 y_vals = F_y(t_vals)
@@ -36,26 +35,26 @@ Ax_vals = F_Ax(t_vals)
 Ay_vals = F_Ay(t_vals)
 rho_vals = F_rho(t_vals)
 
-Alpha_V = np.arctan2(Vy_vals, Vx_vals) # углы направляния
+Alpha_V = np.arctan2(Vy_vals, Vx_vals) 
 Alpha_A = np.arctan2(Ay_vals, Ax_vals)
 
 fig, ax = plt.subplots(figsize=(12, 12))
 ax.axis('equal')
-ax.set_xlim(-8, 8)                      #масштаб x
-ax.set_ylim(-8, 8)                      #масштаб y
-ax.grid(True)                           # сетка
+ax.set_xlim(-8, 8)                      
+ax.set_ylim(-8, 8)                      
+ax.grid(True)                           
 ax.plot(x_vals, y_vals, label='Траектория')
 
 P, = ax.plot([], [], 'ro', label='Точка')
-V_line, = ax.plot([], [], color='red', label='Скорость') #линиия V
-V_arrow, = ax.plot([], [], color='red')                     #наконечник V
-A_line, = ax.plot([], [], color='green', label='Ускорение')     #линиия a->
-A_arrow, = ax.plot([], [], color='green')                           #наконечник a->
+V_line, = ax.plot([], [], color='red', label='Скорость') 
+V_arrow, = ax.plot([], [], color='red')                     
+A_line, = ax.plot([], [], color='green', label='Ускорение')     
+A_arrow, = ax.plot([], [], color='green')                           
 circle = plt.Circle((0, 0), 0, color='purple', fill=False, label='Радиус кривизны')
 ax.add_patch(circle)
 
-a = 0.05                                    # длина стрелки
-b = 0.025                                   # ширина стрелки
+a = 0.05                                    
+b = 0.025                                   
 x_arr = np.array([-a, 0, -a])
 y_arr = np.array([b, 0, -b])
 k_V = 0.2 
@@ -69,20 +68,20 @@ def Rot2D(X, Y, Alpha):
     return RotX, RotY
 
 def animate(i):
-    P.set_data(x_vals[i], y_vals[i])    #обновляю точку
+    P.set_data(x_vals[i], y_vals[i])    
 
-    V_end_x = x_vals[i] + k_V * Vx_vals[i]                      #обновляю вектор скорости
+    V_end_x = x_vals[i] + k_V * Vx_vals[i]                      
     V_end_y = y_vals[i] + k_V * Vy_vals[i]
     V_line.set_data([x_vals[i], V_end_x], [y_vals[i], V_end_y])
     RotX_V, RotY_V = Rot2D(x_arr, y_arr, Alpha_V[i])
     V_arrow.set_data(V_end_x + RotX_V, V_end_y + RotY_V)
 
-    A_end_x = x_vals[i] + k_A * Ax_vals[i]                              # обновляю вектор ускоррения
+    A_end_x = x_vals[i] + k_A * Ax_vals[i]                              
     A_end_y = y_vals[i] + k_A * Ay_vals[i]
     A_line.set_data([x_vals[i], A_end_x], [y_vals[i], A_end_y])
     RotX_A, RotY_A = Rot2D(x_arr, y_arr, Alpha_A[i])
     A_arrow.set_data(A_end_x + RotX_A, A_end_y + RotY_A)
-    #радиуса кривизны
+
     V_mag = np.sqrt(Vx_vals[i]**2 + Vy_vals[i]**2)
     if V_mag == 0:
         circle.set_visible(False)
